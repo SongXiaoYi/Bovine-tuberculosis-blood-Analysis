@@ -16,6 +16,7 @@ library(cowplot)
 library(edgeR)
 library(tinyarray)
 library(gridExtra)
+library(Seurat)
 ######################################
 setwd('F:\\Bull Figure')
 ############################################### Matrix
@@ -39,32 +40,32 @@ pbmc_meta$Infect_time <- paste(pbmc_meta$Infect,pbmc_meta$type,sep = "-")
 pbmc_meta$Infect <- factor(pbmc_meta$Infect, levels = c('Uninfect','Infect'))
 ############################################################## Uninfect-Infect
 ############################################ DEGeq2
-colData <- data.frame(row.names = colnames(pbmc),
-                     condition = pbmc_meta$Infect)
+#colData <- data.frame(row.names = colnames(pbmc),
+#                     condition = pbmc_meta$Infect)
 
-DEG_matrix <- apply(pbmc,2,as.integer)
-rownames(DEG_matrix) <- rownames(pbmc)
+#DEG_matrix <- apply(pbmc,2,as.integer)
+#rownames(DEG_matrix) <- rownames(pbmc)
 
-dds <- DESeqDataSetFromMatrix(
-  countData = DEG_matrix,
-  colData = colData,
-  design = ~ condition
-)
+#dds <- DESeqDataSetFromMatrix(
+#  countData = DEG_matrix,
+#  colData = colData,
+#  design = ~ condition
+#)
 
-dds <- DESeq(dds)
+#dds <- DESeq(dds)
 
-res <- results(dds, contrast = c("condition", rev(levels(pbmc_meta$Infect))))
-resOrdered <- res[order(res$pvalue),]
-DEG <- as.data.frame(resOrdered)
-DEG <- na.omit(DEG)
+#res <- results(dds, contrast = c("condition", rev(levels(pbmc_meta$Infect))))
+#resOrdered <- res[order(res$pvalue),]
+#DEG <- as.data.frame(resOrdered)
+#DEG <- na.omit(DEG)
 
-logFC_cutoff <- with(DEG,mean(abs(log2FoldChange)) + 2*sd(abs(log2FoldChange)))
-k1 <- (DEG$pvalue < 0.05) & (DEG$log2FoldChange < -logFC_cutoff)
-k2 <- (DEG$pvalue < 0.05) & (DEG$log2FoldChange > logFC_cutoff)
-DEG$change <- ifelse(k1,"DOWN",ifelse(k2,"UP","NOT"))
-table(DEG$change)
+#logFC_cutoff <- with(DEG,mean(abs(log2FoldChange)) + 2*sd(abs(log2FoldChange)))
+#k1 <- (DEG$pvalue < 0.05) & (DEG$log2FoldChange < -logFC_cutoff)
+#k2 <- (DEG$pvalue < 0.05) & (DEG$log2FoldChange > logFC_cutoff)
+#DEG$change <- ifelse(k1,"DOWN",ifelse(k2,"UP","NOT"))
+#table(DEG$change)
 
-DESeq2_DEG <- DEG
+#DESeq2_DEG <- DEG
 ############################################ edgeR
 dge <- DGEList(counts = pbmc, group = pbmc_meta$Infect)
 dge$samples$lib.size <- colSums(dge$counts)
@@ -91,7 +92,7 @@ k2 = (DEG$PValue < 0.05)&(DEG$logFC > logFC_cutoff)
 DEG$change <- ifelse(k1, "DOWN", ifelse(k2, "UP","NOT"))
 table(DEG$change)
 
-edgeR_DEG_Infect <- DEG
+edgeR_DEG <- DEG
 
 ############################################# limma
 pbmc_meta$Infect <- factor(pbmc_meta$Infect,levels = c('Infect','Uninfect'))
@@ -119,5 +120,45 @@ k2 <- (DEG$P.Value < 0.05) & (DEG$logFC > logFC_cutoff)
 DEG$change <- ifelse(k1, "DOWN", ifelse(k2, "UP", "NOT"))
 table(DEG$change)
 
-limma_DEG_Infect <- DEG
+limma_DEG <- DEG
+
+##################################################################### PCA
+########################## Early-Late
+pbmc_meta$Infect <- factor(pbmc_meta$Infect,levels = c('Uninfect','Infect'))
+pca.plot <- draw_pca(pbmc,pbmc_meta$Infect)
+p1 <- pca.plot + theme_bw() + NoLegend()
+
+setwd('F:\\Bull Figure\\Figure1')
+pdf(file = 'PCA-plot_p1_legend.pdf', width = 3.5, height = 3.55)
+pca.plot + theme_bw()
+dev.off()
+
+########################## 
+pbmc_meta$Infect_time <- factor(pbmc_meta$Infect_time,levels = c('Uninfect-Early','Infect-Early','Uninfect-Late','Infect-Late'))
+pca.plot <- draw_pca(pbmc,pbmc_meta$Infect_time,color = c("#E78AC3","#A6D854","#868686","#66C2A5"))
+p2 <- pca.plot + theme_bw() + NoLegend()
+
+setwd('F:\\Bull Figure\\Figure1')
+pdf(file = 'PCA-plot_p2_legend.pdf', width = 3.5, height = 3.55)
+pca.plot + theme_bw()
+dev.off()
+
+setwd('F:\\Bull Figure\\Figure1')
+pdf(file = 'PCA-plot.pdf', width = 7, height = 3.55)
+grid.arrange(p1,p2,ncol=2)
+dev.off()
+
+
+##################################################################### Intersection
+UP_function <- function(df){
+  rownames(df)[df$change == 'UP']
+}
+
+DOWN_function <- function(df){
+  rownames(df)[df$change == 'DOWN']
+}
+
+Up_all <- intersect(UP_function(limma_DEG),UP_function(edgeR_DEG))
+DOWN_all <- intersect(DOWN_function(edgeR_DEG_EL),DOWN_function(limma_DEG_EL))
+
 
