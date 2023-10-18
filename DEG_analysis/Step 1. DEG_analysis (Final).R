@@ -44,10 +44,10 @@ pbmc_meta$InEvsOther <- pbmc_meta$Infect_time
 pbmc_meta[which(pbmc_meta$Infect_time != 'Infect-Early'),'InEvsOther'] <- 'Control'
 pbmc_meta[which(pbmc_meta$Infect_time == 'Infect-Early'),'InEvsOther'] <- 'Case'
 
-description <- factor(pbmc_meta$InEvsOther, levels = c('Case','Control'))
+description <- factor(pbmc_meta$InEvsOther, levels = c('Control','Case'))
 matrix <- as.data.frame(pbmc)
 design <- model.matrix(~description + 0, matrix)
-colnames(design) <- c('Case','Control')
+colnames(design) <- c('Control','Case')
 
 dge <- DGEList(counts = pbmc)
 v <- voom(dge, design, normalize = 'quantile')
@@ -82,9 +82,9 @@ p1 <- EnhancedVolcano(DEG,
               subtitle = NULL,
               pCutoff = 0.05,
               pointSize = 4.0,
-              FCcutoff = 1.2,
+              FCcutoff = 1,
               labSize = 6,
-              #shape = 8,
+              shape = 8,
               colAlpha = 1,
               #drawConnectors = TRUE,
               widthConnectors = 0.75)
@@ -95,13 +95,13 @@ p1
 dev.off()
 
 ##################################################  Early infection vs Late infection
-pbmc <- pbmc[,1:12]
-pbmc_meta <- pbmc_meta[1:12,]
+pbmc <- pbmc[,c(7:12,19:24)]
+pbmc_meta <- pbmc_meta[c(7:12,19:24),]
 
-description <- factor(pbmc_meta$InEvsOther, levels = c('Case','Control'))
+description <- factor(pbmc_meta$InEvsOther, levels = c('Control','Case'))
 matrix <- as.data.frame(pbmc)
 design <- model.matrix(~description + 0, matrix)
-colnames(design) <- c('Case','Control')
+colnames(design) <- c('Control','Case')
 
 dge <- DGEList(counts = pbmc)
 v <- voom(dge, design, normalize = 'quantile')
@@ -136,13 +136,13 @@ p2 <- EnhancedVolcano(DEG,
               pCutoff = 0.05,
               pointSize = 4.0,
               labSize = 6,
-              #shape = 8,
+              shape = 8,
               colAlpha = 1,
               #drawConnectors = TRUE,
               widthConnectors = 0.75)
 
 setwd('F:\\Bull Figure\\Figure2')
-pdf(file = 'InfectEarly_vs_NormalEarly.pdf', width = 6.5, height = 6.5)
+pdf(file = 'InfectEarly_vs_InfectLate.pdf', width = 6.5, height = 6.5)
 p2
 dev.off()
 
