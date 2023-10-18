@@ -82,6 +82,7 @@ p1 <- EnhancedVolcano(DEG,
               subtitle = NULL,
               pCutoff = 0.05,
               pointSize = 4.0,
+              FCcutoff = 1.2,
               labSize = 6,
               #shape = 8,
               colAlpha = 1,
@@ -118,7 +119,32 @@ diff <- subset(DEG,DEG$P.Val < 0.05 & abs(DEG$logFC) > 1.2)
 diff$Trend <- "up"
 diff$Trend[diff$logFC < 0] <- "down" 
 
+####################################################### 火山图
+library(EnhancedVolcano)
+library(magrittr)
 
+DEG$P.Val <- as.numeric(DEG$P.Val)
+
+p2 <- EnhancedVolcano(DEG,
+              lab = rownames(DEG),
+              x = "logFC",
+              y = "P.Val",
+              xlim = c(-3,3),
+              ylim = c(0,6),                
+              title = NULL,
+              subtitle = NULL,
+              pCutoff = 0.05,
+              pointSize = 4.0,
+              labSize = 6,
+              #shape = 8,
+              colAlpha = 1,
+              #drawConnectors = TRUE,
+              widthConnectors = 0.75)
+
+setwd('F:\\Bull Figure\\Figure2')
+pdf(file = 'InfectEarly_vs_NormalEarly.pdf', width = 6.5, height = 6.5)
+p2
+dev.off()
 
 
 
