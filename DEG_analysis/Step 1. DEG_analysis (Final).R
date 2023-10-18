@@ -49,6 +49,7 @@ matrix <- as.data.frame(pbmc)
 design <- model.matrix(~description + 0, matrix)
 colnames(design) <- c('Case','Control')
 
+dge <- DGEList(counts = pbmc)
 v <- voom(dge, design, normalize = 'quantile')
 fit <- lmFit(v, design)
 
@@ -92,8 +93,30 @@ pdf(file = 'InfectEarly_vs_Other.pdf', width = 6.5, height = 6.5)
 p1
 dev.off()
 
-#
+##################################################  Early infection vs Late infection
+pbmc <- pbmc[,1:12]
+pbmc_meta <- pbmc_meta[1:12,]
 
+description <- factor(pbmc_meta$InEvsOther, levels = c('Case','Control'))
+matrix <- as.data.frame(pbmc)
+design <- model.matrix(~description + 0, matrix)
+colnames(design) <- c('Case','Control')
+
+dge <- DGEList(counts = pbmc)
+v <- voom(dge, design, normalize = 'quantile')
+fit <- lmFit(v, design)
+
+cont.matrix <- makeContrasts(Case-Control, levels = design)
+fit2 = contrasts.fit(fit, cont.matrix)
+fit2 = eBayes(fit2)
+
+DEG = topTable(fit2, adjust.method = "fdr", sort.by = "B", number = nrow(matrix))
+DEG = na.omit(DEG)
+
+DEG <- data.frame(Gene = row.names(DEG),DEG)
+diff <- subset(DEG,DEG$P.Val < 0.05 & abs(DEG$logFC) > 1.2)
+diff$Trend <- "up"
+diff$Trend[diff$logFC < 0] <- "down" 
 
 
 
