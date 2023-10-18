@@ -39,6 +39,18 @@ pbmc_meta$Infect <- c(rep('Uninfect',6),rep('Infect',6),rep('Uninfect',6),rep('I
 pbmc_meta$Infect_time <- paste(pbmc_meta$Infect,pbmc_meta$type,sep = "-")
 pbmc_meta$Infect <- factor(pbmc_meta$Infect, levels = c('Uninfect','Infect'))
 
+#group_list <- pbmc_meta$Infect
+#batch <- pbmc_meta$type
+
+#g=factor(group_list)
+#g=relevel(g,'Uninfect')
+#design=model.matrix(~g) 
+
+#ex_b_limma <- removeBatchEffect(pbmc,
+#                                batch = batch,
+#                                design = design)
+
+#pbmc <- ex_b_limma
 ##################################################################### PCA
 ########################## Early-Late
 pbmc_meta$Infect <- factor(pbmc_meta$Infect,levels = c('Uninfect','Infect'))
